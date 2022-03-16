@@ -1,33 +1,19 @@
-INCLUDES=-Iincludes/
-CXXFLAGS=-std=c++20 -stdlib=libc++ -lc++abi -g -O0 -Wall -Wextra -Werror -pedantic $(INCLUDES)
 CXX=clang++
+INCLUDES=-Iincludes/
+CXXFLAGS=-std=c++20 -g -fstandalone-debug -Wall -Wextra -pedantic $(INCLUDES)
 
-exec: run_exec
+exec: bin/exec
+tests: bin/tests
 
-tests Matrix: bin/Matrix_tests.out
-	-$<
+bin/exec: ./src/main.cc ./src/matrix.cc ./includes/matrix.hpp ./src/fraction.cc ./includes/fraction.hpp
+	$(CXX) $(CXXFLAGS) ./src/main.cc ./src/matrix.cc ./src/fraction.cc  -o $@
 
-tests Fraction: bin/Fraction_tests.out
-	-$<
-
-run_exec: bin/main.out
-	$<
-
-open_exec: 
-	./bin/main.out
-
-clean:
-	rm -f bin/*
-
-bin/main.out: src/main.cc src/matrix.cc src/fraction.cc
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-bin/Matrix_tests.out: tests/tests_matrix.cc src/matrix.cc src/fraction.cc
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-bin/Fraction_tests.out: tests/tests_fraction.cc src/matrix.cc src/fraction.cc
-	$(CXX) $(CXXFLAGS) $^ -o $@
+bin/tests: ./tests/tests.cc ./src/matrix.cc ./includes/matrix.hpp ./src/fraction.cc ./includes/fraction.hpp
+	$(CXX) $(CXXFLAGS) ./tests/tests.cc ./src/matrix.cc ./src/fraction.cc  -o $@
 
 
 .DEFAULT_GOAL := exec
-.PHONY: clean exec 
+.PHONY: clean exec tests
+
+clean:
+	rm -rf ./bin/*

@@ -11,31 +11,30 @@ Fraction::Fraction(){
 Fraction::Fraction(double v){
     numerator = v * 1000;
     denominator = 1000;
-}
-
-Fraction::Fraction(int n, int d){
-    if(d == 0){
-        d = 1;
-        n = maxvalue_int;
-    }
-    numerator = n;
-    denominator = d;
+    Valid();
     reduction();
 }
 
-bool Fraction::Fraction::isValid(){
-    //A fraction with a denominator of 0 is not valid 
-    if(denominator == 0){
-        return false;
+Fraction::Fraction(int n, int d){
+    numerator = n;
+    denominator = d;
+    Valid();
+    reduction();
+}
+
+void Fraction::Fraction::Valid(){
+    //A fraction with a denominator and numerator of 0 is not valid 
+    if(denominator == 0 && numerator == 0){
+        throw std::runtime_error("invalid fraction");
     }
-    return true;
+    if(denominator == 0){
+        std::cout << "Detect zero denominator" <<std::endl;
+        numerator = maxvalue_int;
+        denominator = 1;
+    }
 }
 
 int FindGCD(int a, int b){
-    if(a == 0 && b == 0){
-        throw std::runtime_error("a and b are both 0");
-    }
-
     if(a == 0){
        return b;
     }
@@ -57,6 +56,7 @@ Fraction Fraction::FindInverse(){
     int new_numerator = denominator;
     int new_denominator = numerator;
     Fraction new_fraction(new_numerator,new_denominator);
+    new_fraction.Valid();
     new_fraction.reduction();
     return new_fraction;
 }
@@ -82,6 +82,7 @@ Fraction operator+ (const Fraction& f1, const Fraction& f2){
     int new_numerator = f1.numerator * f2.denominator + f2.numerator * f1.denominator;
     int new_denominator = f1.denominator * f2.denominator;
     Fraction new_fraction(new_numerator,new_denominator);
+    new_fraction.Valid();
     new_fraction.reduction();
     return new_fraction;
 }
@@ -90,6 +91,7 @@ Fraction operator- (const Fraction& f1, const Fraction& f2){
     int new_numerator = f1.numerator * f2.denominator - f2.numerator * f1.denominator;
     int new_denominator = f1.denominator * f2.denominator;
     Fraction new_fraction(new_numerator,new_denominator);
+    new_fraction.Valid();
     new_fraction.reduction();
     return new_fraction;
 }
@@ -98,6 +100,7 @@ Fraction operator* (const Fraction& f1, const Fraction& f2){
     int new_numerator = f1.numerator * f2.numerator;
     int new_denominator = f1.denominator * f2.denominator;
     Fraction new_fraction(new_numerator,new_denominator);
+    new_fraction.Valid();
     new_fraction.reduction();
     return new_fraction;
 }
@@ -106,6 +109,7 @@ Fraction operator/ (const Fraction& f1, const Fraction& f2){
      int new_numerator = f1.numerator * f2.denominator;
     int new_denominator = f1.denominator * f2.numerator;
     Fraction new_fraction(new_numerator,new_denominator);
+    new_fraction.Valid();
     new_fraction.reduction();
     return new_fraction;
 }

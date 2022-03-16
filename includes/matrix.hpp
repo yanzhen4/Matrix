@@ -298,7 +298,7 @@ std::vector<Fraction> operator + (std::vector<Fraction> row1, std::vector<Fracti
 /**
  * @brief Overload insertion operator 
  * 
- * @param os the stream to insert into 
+ * @param os 
  * @param row the vector that is inserted 
  * @return std::ostream& 
  */
