@@ -4,21 +4,22 @@ size_t maxvalue_sizet = std::numeric_limits<size_t>::max();
 Matrix::Matrix(){
   height_ = 1;
   width_ = 1;
-  std::vector<std::vector<double>> unit = {{1}};
+  
+  std::vector<std::vector<Fraction>> unit = {{Fraction(1)}};
   entries = unit;
 }
 
 Matrix::Matrix(size_t n){
   height_ = n;
   width_ = n;
-  std::vector<std::vector<double>> identity;
+  std::vector<std::vector<Fraction>> identity;
   for(size_t i = 0; i < height_; i ++){
-    std::vector<double> tmp;
+    std::vector<Fraction> tmp;
     for(size_t j = 0; j < width_; j ++){
       if(i == j){
-        tmp.push_back(1.0);
+        tmp.push_back(Fraction(1.0));
       }else{
-        tmp.push_back(0.0);
+        tmp.push_back(Fraction(0.0));
       }
     }
     identity.push_back(tmp);
@@ -26,16 +27,32 @@ Matrix::Matrix(size_t n){
   entries = identity;
 }
 
-Matrix::Matrix(int n, int i, int j, double value){
+Matrix::Matrix(size_t n, size_t i, size_t j, Fraction value){
   Matrix tmpI(n);
-  std::vector<std::vector<double>> entries_tmp = tmpI.GetEntries();
+  std::vector<std::vector<Fraction>> entries_tmp = tmpI.GetEntries();
   entries_tmp[i][j] = value;
   entries = entries_tmp;
   height_ = n;
   width_ = n;
 }
 
+Matrix::Matrix(std::vector<std::vector<Fraction>>& entries_input){
+  initialize(entries_input);
+}
+
 Matrix::Matrix(std::vector<std::vector<double>>& entries_input){
+  std::vector<std::vector<Fraction>> entries;
+  for(size_t i = 0; i < entries_input.size(); i++){
+    std::vector<Fraction> e;
+    for(size_t j = 0; j < entries_input[0].size(); j++){
+      e.push_back(Fraction(entries_input[i][j]));
+    }
+    entries.push_back(e);
+  }
+  initialize(entries);
+}
+
+void Matrix::initialize(std::vector<std::vector<Fraction>>& entries_input){
   height_ = entries_input.size();
   width_ = entries_input[0].size();
   entries = entries_input;
@@ -49,7 +66,7 @@ size_t Matrix::GetWidth() const{
   return width_;
 }
 
-double Matrix::GetEntry(size_t row, size_t column) const{
+Fraction Matrix::GetEntry(size_t row, size_t column) const{
   if(row < 0 || row >= height_){
     throw std::runtime_error("row not in correct range");
   }
@@ -61,11 +78,11 @@ double Matrix::GetEntry(size_t row, size_t column) const{
   return entries[row][column];
 }
 
-std::vector<std::vector<double>>& Matrix::GetEntriesReference(){
+std::vector<std::vector<Fraction>>& Matrix::GetEntriesReference(){
   return entries;
 }
 
-std::vector<std::vector<double>> Matrix::GetEntries() const{
+std::vector<std::vector<Fraction>> Matrix::GetEntries() const{
   return entries;
 }
 
@@ -73,9 +90,9 @@ Matrix Matrix::operator+ (const Matrix& m){
   if(height_ != m.GetHeight() || width_ != m.GetWidth()){
     throw std::runtime_error("height or width is not the same");
   }
-  std::vector<std::vector<double>> sum;
+  std::vector<std::vector<Fraction>> sum;
   for(size_t i = 0; i < height_; i++){
-    std::vector<double> s;
+    std::vector<Fraction> s;
     for(size_t j = 0; j < width_; j++){
       s.push_back(GetEntry(i,j) + m.GetEntry(i,j));
     }
@@ -89,9 +106,9 @@ Matrix Matrix::operator- (const Matrix& m){
   if(height_ != m.GetHeight() || width_ != m.GetWidth()){
     throw std::runtime_error("height or width is not the same");
   }
-  std::vector<std::vector<double>> difference;
+  std::vector<std::vector<Fraction>> difference;
   for(size_t i = 0; i < height_; i++){
-    std::vector<double> d;
+    std::vector<Fraction> d;
     for(size_t j = 0; j < width_; j++){
       d.push_back(GetEntry(i,j) - m.GetEntry(i,j));
     }
@@ -102,9 +119,13 @@ Matrix Matrix::operator- (const Matrix& m){
 }
 
 Matrix Matrix::operator * (double scalar){
-  std::vector<std::vector<double>> product;
+  return (*this) * Fraction(scalar);
+}
+
+Matrix Matrix::operator* (Fraction scalar){
+  std::vector<std::vector<Fraction>> product;
   for(size_t i = 0; i < height_; i++){
-    std::vector<double> p;
+    std::vector<Fraction> p;
     for(size_t j = 0; j < width_; j++){
       p.push_back(GetEntry(i,j)*scalar);
     }
@@ -118,11 +139,11 @@ Matrix Matrix::operator* (const Matrix& m){
   if(GetWidth() != m.GetHeight()){
     throw std::runtime_error("width of first matrix does not match the height of the second matrix");
   }
-  std::vector<std::vector<double>> product;
+  std::vector<std::vector<Fraction>> product;
   for(size_t i = 0; i < GetHeight(); i++){
-    std::vector<double> p;
+    std::vector<Fraction> p;
     for(size_t j = 0; j < m.GetWidth(); j++){
-      double sum = 0;
+      Fraction sum = 0;
       for(size_t k = 0; k < GetWidth(); k++){
         sum = sum + GetEntry(i,k) * m.GetEntry(k,j);
         //std::cout << GetEntry(i,k) * m.GetEntry(k,j) << " + ";
@@ -142,11 +163,15 @@ std::ostream& operator << (std::ostream& os, Matrix& m){
   os << m.GetWidth() << " column(s)" << std::endl;
   for(size_t i = 0; i < m.GetHeight(); i++){
     for(size_t j = 0; j< m.GetWidth(); j++){
-      os << m.GetEntry(i,j) << " ";
+      os << m.GetEntry_toString(i,j) << " ";
     }
     os << std::endl;
   }
   return os;
+}
+
+std::string Matrix::GetEntry_toString(size_t row, size_t column) const{
+  return (GetEntry(row,column).toString());
 }
 
 bool Matrix::IsIdentity(){
@@ -161,11 +186,11 @@ bool Matrix::IsIdentity(){
    return true;
  }
 
-double Matrix::FindDeterminant(){
+Fraction Matrix::FindDeterminant(){
   return FindDeterminant(*this);
 }
 
-double Matrix::FindDeterminant(const Matrix& m){
+Fraction Matrix::FindDeterminant(const Matrix& m){
   if(m.GetHeight() != m.GetWidth()){
     throw std::runtime_error("Determinant is undefined for non-square matrices");
   }
@@ -176,24 +201,24 @@ double Matrix::FindDeterminant(const Matrix& m){
   }
 
   //Find the determinant base on Laplace expansion: https://en.wikipedia.org/wiki/Laplace_expansion
-  double determinant = 0;
+  Fraction determinant;
   for(size_t i = 0; i < m.GetWidth(); i++){
-    double coefficient = m.GetEntry(0,i);
+    Fraction coefficient = m.GetEntry(0,i);
     if(i % 2 == 1){
       coefficient = coefficient * (-1);
     }
     Matrix tmp = removeRowColumn(m,0,i);
-    double sub_determinant = coefficient * FindDeterminant(tmp);
+    Fraction sub_determinant = coefficient * FindDeterminant(tmp);
     determinant = determinant + sub_determinant;
   }
   return determinant;
 }
 
 Matrix Matrix::removeRowColumn(const Matrix& m, size_t row, size_t col){
-  std::vector<std::vector<double>> new_entries;
+  std::vector<std::vector<Fraction>> new_entries;
   for(size_t i = 0; i < m.GetHeight(); i++){
     if(i != row){
-      std::vector<double> tmp;
+      std::vector<Fraction> tmp;
       for(size_t j = 0; j < m.GetWidth(); j++){
         if(j != col){
           tmp.push_back(m.GetEntry(i,j));
@@ -206,8 +231,8 @@ Matrix Matrix::removeRowColumn(const Matrix& m, size_t row, size_t col){
   return new_matrix;
 }
 
-void Matrix::row_swap(std::vector<double>& v1,std::vector<double>& v2){
-  std::vector<double>& tmp = v1;
+void Matrix::row_swap(std::vector<Fraction>& v1,std::vector<Fraction>& v2){
+  std::vector<Fraction>& tmp = v1;
   v1 = v2;
   v2 = tmp;
 }
@@ -231,7 +256,7 @@ size_t Matrix::FindBestPivot(size_t col){
 }
 
 Matrix Matrix::FindRREF(){
-  std::vector <std::vector<double>>& m_entries  = GetEntriesReference();
+  std::vector <std::vector<Fraction>>& m_entries  = GetEntriesReference();
   for(size_t j = 0; j < GetWidth(); j++){
     size_t row = FindBestPivot(j);
     if(row == maxvalue_sizet){
@@ -240,7 +265,7 @@ Matrix Matrix::FindRREF(){
     row_swap(m_entries[j],m_entries[row]);
     for(size_t i = 0; i < GetHeight(); i++){
       if(i != row && m_entries[row][j] != 0){
-          double factor = m_entries[i][j] / m_entries[row][j];
+          Fraction factor = m_entries[i][j] / m_entries[row][j];
           factor = factor * (-1);
           m_entries[i] = m_entries[i] + m_entries[row] * factor;
       }  
@@ -254,7 +279,7 @@ Matrix Matrix::FindRREF(){
     while(m_entries[i][j] == 0){
       j++;
     }
-    double factor = 1 / m_entries[i][j];
+    Fraction factor = 1 / m_entries[i][j];
     m_entries[i] = m_entries[i] * factor;
   }
   return *this;
@@ -262,12 +287,12 @@ Matrix Matrix::FindRREF(){
 
 Matrix Matrix::FindInverse(){
   Matrix I = Matrix(GetHeight());
-  std::vector <std::vector<double>> m_entries  = GetEntries();
-  std::vector<std::vector<double>>& I_entries = I.GetEntriesReference();
+  std::vector <std::vector<Fraction>> m_entries  = GetEntries();
+  std::vector<std::vector<Fraction>>& I_entries = I.GetEntriesReference();
   for(size_t i = 1; i < GetHeight(); i ++){
     for(size_t j = 0; j < i; j ++){
       if(m_entries[i][j] != 0){
-        double factor = (-1) * m_entries[i][j] / m_entries[j][j];
+        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
         m_entries[i] = m_entries[i] + (m_entries[j] * factor);
         I_entries[i] = I_entries[i] + (I_entries[j] * factor);
       }
@@ -279,7 +304,7 @@ Matrix Matrix::FindInverse(){
       if(m_entries[i][j] != 0){
         std::cout << *this <<std::endl;
         std::cout << I << std::endl;
-        double factor = (-1) * m_entries[i][j] / m_entries[j][j];
+        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
         m_entries[i] = m_entries[i] + (m_entries[j] * factor);
         I_entries[i] = I_entries[i] + (I_entries[j] * factor);
       }
@@ -287,7 +312,7 @@ Matrix Matrix::FindInverse(){
   }
   
   for(size_t i = 0; i < GetHeight(); i ++){
-    double factor = 1.0 / m_entries[i][i];
+    Fraction factor = 1.0 / m_entries[i][i];
     m_entries[i] = m_entries[i] * factor;
     I_entries[i] = I_entries[i] * factor;
   }
@@ -296,9 +321,9 @@ Matrix Matrix::FindInverse(){
 }
 
 Matrix Matrix::FindTranspose(){
-  std::vector<std::vector<double>> result;
+  std::vector<std::vector<Fraction>> result;
   for(size_t i = 0; i < GetWidth(); i++){
-    std::vector<double> tmp;
+    std::vector<Fraction> tmp;
     for(size_t j = 0; j < GetHeight(); j++){
       tmp.push_back(GetEntry(j,i));
     }
@@ -310,11 +335,11 @@ Matrix Matrix::FindTranspose(){
 
 std::vector<Matrix> Matrix::FindElementaryMatrics(){
   std::vector<Matrix> result;
-  std::vector <std::vector<double>> m_entries  = GetEntries();
+  std::vector <std::vector<Fraction>> m_entries  = GetEntries();
   for(size_t i = 1; i < GetHeight(); i ++){
     for(size_t j = 0; j < i; j ++){
       if(m_entries[i][j] != 0){
-        double factor = (-1) * m_entries[i][j] / m_entries[j][j];
+        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
         m_entries[i] = m_entries[i] + (m_entries[j] * factor);
         Matrix e(GetHeight(),i,j,factor);
         result.push_back(e);
@@ -335,11 +360,11 @@ Matrix Matrix::FindL(){
 }
 
 Matrix Matrix::FindU(){
-  std::vector <std::vector<double>> m_entries  = GetEntries();
+  std::vector <std::vector<Fraction>> m_entries  = GetEntries();
   for(size_t i = 1; i < GetHeight(); i ++){
     for(size_t j = 0; j < i; j ++){
       if(m_entries[i][j] != 0){
-        double factor = (-1) * m_entries[i][j] / m_entries[j][j];
+        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
         m_entries[i] = m_entries[i] + (m_entries[j] * factor);
       }
     }
@@ -358,7 +383,7 @@ std::pair<Matrix,Matrix> Matrix::FindLU(){
 }
 
 Matrix Matrix::FindInverseElementary(){
-  std::vector<std::vector<double>> result = GetEntries();
+  std::vector<std::vector<Fraction>> result = GetEntries();
   for(size_t i = 0; i < GetHeight(); i++){
     for(size_t j = 0; j < i; j ++){
       if(GetEntry(i,j) != 0){
@@ -384,26 +409,26 @@ bool operator == (const Matrix& m1, const Matrix& m2){
   return true;
 }
 
-std::vector<double> operator * (std::vector<double> row, double scaler){
-  std::vector<double> result;
+std::vector<Fraction> operator * (std::vector<Fraction> row, Fraction scaler){
+  std::vector<Fraction> result;
   for(size_t i = 0; i < row.size(); i++){
     result.push_back(row[i] * scaler);
   }
   return result;
 }
 
-std::vector<double> operator + (std::vector<double> row1, std::vector<double> row2){
-  std::vector<double> result;
+std::vector<Fraction> operator + (std::vector<Fraction> row1, std::vector<Fraction> row2){
+  std::vector<Fraction> result;
   for(size_t i = 0; i < row1.size(); i++){
-    double tmp = row1[i] + row2[i];
+    Fraction tmp = row1[i] + row2[i];
     result.push_back(tmp);
   }
   return result;
 }
 
-std::ostream& operator << (std::ostream& os, std::vector<double> row){
+std::ostream& operator << (std::ostream& os, std::vector<Fraction> row){
   for(size_t i = 0; i < row.size(); i ++){
-    os << row[i] << " ";
+    os << row[i].toString() << " ";
   }
   return os;
 }

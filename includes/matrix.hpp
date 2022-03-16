@@ -7,6 +7,8 @@
 #include <utility>
 #include <limits>
 
+#include "fraction.hpp"
+
 class Matrix {
   public:
     /**
@@ -22,11 +24,19 @@ class Matrix {
     Matrix(size_t n);
 
     /**
-     * @brief Construct a new Matrix object
+     * @brief Construct a new Matrix object using a vector of doubles
      * @param entries_input a two-dimensional vector containing all the values in the matrix
      */
 
     Matrix(std::vector<std::vector<double>>& entries_input);
+
+    /**
+     * @brief Construct a new Matrix objectusing a vector of Fractions
+     * 
+     * @param entries_input vector of Fractions
+     */
+    Matrix(std::vector<std::vector<Fraction>>& entries_input);
+
     /**
      * @brief Construct a new Elementary Matrix object
      * @param n the size of the matrix
@@ -34,7 +44,7 @@ class Matrix {
      * @param j the column number of value
      * @param value the value 
      */
-    Matrix(int n, int i, int j, double value);
+    Matrix(size_t n, size_t i, size_t j, Fraction value);
 
     /**
      * @brief addition operator + 
@@ -58,6 +68,14 @@ class Matrix {
      * @return Matrix after scaling
      */
     Matrix operator* (double scalar);
+
+    /**
+     * @brief scalar product using scalaer
+     * 
+     * @param scalar a scalar as a fraction 
+     * @return Matrix 
+     */
+    Matrix operator* (Fraction scalar);
 
     /**
      * @brief matrix multiplication operator
@@ -90,18 +108,18 @@ class Matrix {
       *The places in the matrix where the numbers are called entries
       * @param row the row number of the wanted entry
       * @param column the column number of the wanted entry
-      * @return the value at that entry 
+      * @return the Fraction at that entry 
       */
-    double GetEntry(size_t row, size_t column) const;
+    Fraction GetEntry(size_t row, size_t column) const;
 
     /**
      * @brief Get the Entries of matrix, pass by reference
      * @return entries of the matrix, pass by reference 
      */
-    std::vector<std::vector<double>>& GetEntriesReference();
+    std::vector<std::vector<Fraction>>& GetEntriesReference();
 
 
-    std::vector<std::vector<double>> GetEntries() const;
+    std::vector<std::vector<Fraction>> GetEntries() const;
 
     /**
       * A identity matrix is a n * n matrix that has 1s on its pivot (main diagonal) and zeros else where 
@@ -169,14 +187,14 @@ class Matrix {
      * 
      * @return double 
      */
-    double FindDeterminant();
+    Fraction FindDeterminant();
 
 
     /**
      * @brief Find Determinant of matrix m
      * 
      */
-    double FindDeterminant(const Matrix& m);
+    Fraction FindDeterminant(const Matrix& m);
 
     /**
      * @brief Find the RREF form of the matrix
@@ -214,7 +232,14 @@ class Matrix {
     size_t width_; 
 
     /** the entries of the matrix, the content of the matrix*/
-    std::vector<std::vector<double>> entries;
+    std::vector<std::vector<Fraction>> entries;
+
+    /**
+     * @brief initialize a new matrix, helper function of Matrix Constructor
+     * 
+     * @param entries_input 
+     */
+    void initialize(std::vector<std::vector<Fraction>>& entries_input);
 
     /**
      * @brief Helper function for FindDeterminant, return the matrix with ith row
@@ -239,7 +264,17 @@ class Matrix {
      * @param v1 first vector
      * @param v2 second vector
      */
-    void row_swap(std::vector<double>& v1, std::vector<double>& v2);
+    void row_swap(std::vector<Fraction>& v1, std::vector<Fraction>& v2);
+
+    /**
+     * @brief return the Fraction in string, helper function of <<operator of the matrix class 
+     * 
+     * @param row 
+     * @param column 
+     * @return std::string 
+     */
+    std::string GetEntry_toString(size_t row, size_t column) const;
+
 };
 
 /**
@@ -258,7 +293,7 @@ bool operator== (const Matrix& m1, const Matrix& m2);
  * @param row2 the second matrix 
  * @return std::vector<double> the sum of two matrices 
  */
-std::vector<double> operator + (std::vector<double> row1, std::vector<double> row2);
+std::vector<Fraction> operator + (std::vector<Fraction> row1, std::vector<Fraction> row2);
 
 /**
  * @brief Overload insertion operator 
@@ -267,7 +302,7 @@ std::vector<double> operator + (std::vector<double> row1, std::vector<double> ro
  * @param row the vector that is inserted 
  * @return std::ostream& 
  */
-std::ostream& operator << (std::ostream& os, std::vector<double> row);
+std::ostream& operator << (std::ostream& os, std::vector<Fraction> row);
 
 /**
  * @brief multiplication operator 
@@ -276,4 +311,4 @@ std::ostream& operator << (std::ostream& os, std::vector<double> row);
  * @param scaler the scalar 
  * @return std::vector<double> 
  */
-std::vector<double> operator * (std::vector<double> row, double scaler); 
+std::vector<Fraction> operator * (std::vector<Fraction> row, Fraction scaler); 

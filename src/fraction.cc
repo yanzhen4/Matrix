@@ -1,6 +1,18 @@
 #include "fraction.hpp"
 
 int maxvalue_int = std::numeric_limits<int>::max();
+
+Fraction::Fraction(){
+    numerator = 0;
+    denominator = 1000;
+}
+
+//Precision of three decimals
+Fraction::Fraction(double v){
+    numerator = v * 1000;
+    denominator = 1000;
+}
+
 Fraction::Fraction(int n, int d){
     if(d == 0){
         d = 1;
@@ -47,6 +59,19 @@ Fraction Fraction::FindInverse(){
     Fraction new_fraction(new_numerator,new_denominator);
     new_fraction.reduction();
     return new_fraction;
+}
+
+std::string Fraction::toString() const{
+    if(denominator == 1){
+        return std::to_string(numerator);
+    }else{
+        return std::to_string(numerator) + "/" + std::to_string(denominator);
+    }
+}
+
+std::ostream& operator << (std::ostream& os,Fraction f){
+    os << f.toString();
+    return os;
 }
 
 bool operator== (const Fraction& f1, const Fraction& f2){

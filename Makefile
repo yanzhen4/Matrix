@@ -4,13 +4,14 @@ CXX=clang++
 
 exec: run_exec
 
-tests: run_tests 
+tests Matrix: bin/Matrix_tests.out
+	-$<
+
+tests Fraction: bin/Fraction_tests.out
+	-$<
 
 run_exec: bin/main.out
 	$<
-
-run_tests: bin/tests.out
-	- $<
 
 open_exec: 
 	./bin/main.out
@@ -21,7 +22,10 @@ clean:
 bin/main.out: src/main.cc src/matrix.cc src/fraction.cc
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-bin/tests.out: tests/tests.cc src/matrix.cc src/fraction.cc
+bin/Matrix_tests.out: tests/tests_matrix.cc src/matrix.cc src/fraction.cc
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+bin/Fraction_tests.out: tests/tests_fraction.cc src/matrix.cc src/fraction.cc
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 
