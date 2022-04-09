@@ -1,7 +1,37 @@
 #include "matrix.hpp"
 //aware of const
-std::vector<std::vector<double>> a = {{2,7},{8,3}};
+
+//Write input and output file instead of initializing everything in the main
+
+
 int main(){
+  //std::vector<std::vector<double>> a = {{2,5,1,1},{5,-2,0,4},{1,5,3,7},{9,7,4,1}};
+  std::vector<std::vector<double>> a = {{1,-2,-2},{-2,5,6},{3,-5,-3}};
+  Matrix A(a);
+  Matrix A_Inverse = A.FindInverse();
+  std::cout << A_Inverse <<std::endl;
+  /* 
+  //Spring break Homework
+  std::vector<std::vector<double>> p = {{1,3},{1,0},{-1,2},{-1,2},{-3,-2}};
+  std::vector<std::vector<double>> a = {{13,5},{5,21}};
+  std::vector<std::vector<double>> b = {{2},{6}};
+  std::vector<std::vector<Fraction>> x1 = {{Fraction(3,62)},{Fraction(17,62)}};
+  Matrix A(a); 
+  Matrix B(b);
+  Matrix AT = A.FindTranspose();
+  Matrix ATA = AT * A;
+  Matrix ATAI = ATA.FindInverse();
+  Matrix ATAIAT = ATAI * AT;
+  Matrix x = ATAIAT * B;
+  std::cout << x <<std::endl;
+  Matrix P(p);
+  Matrix result = P * x;
+  Matrix X1(x1);
+  Matrix r = A * X1;
+  std::cout << "r: " << r <<std::endl;
+  */
+
+  /*
   std::vector<std::vector<double>> a = {{1}};
   std::vector<std::vector<double>> b = {{1}};
   Matrix A(a);
@@ -12,6 +42,7 @@ int main(){
   }else{
     std::cout << "A and B are not equal" <<std::endl;
   }
+  */
   /*
   //Test FindU
   Matrix M(m);

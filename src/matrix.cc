@@ -58,6 +58,7 @@ void Matrix::initialize(std::vector<std::vector<Fraction>>& entries_input){
   entries = entries_input;
 }
 
+
 size_t Matrix::GetHeight() const{
   return height_;
 }
@@ -84,6 +85,14 @@ std::vector<std::vector<Fraction>>& Matrix::GetEntriesReference(){
 
 std::vector<std::vector<Fraction>> Matrix::GetEntries() const{
   return entries;
+}
+
+std::vector<Fraction>& Matrix::GetRowReference(size_t row_idx){
+  return entries[row_idx];
+}
+
+std::vector<Fraction> Matrix::GetRow(size_t row_idx){
+  return entries[row_idx];
 }
 
 Matrix Matrix::operator+ (const Matrix& m){
@@ -232,33 +241,23 @@ Matrix Matrix::removeRowColumn(const Matrix& m, size_t row, size_t col){
 }
 
 void Matrix::row_swap(std::vector<Fraction>& v1,std::vector<Fraction>& v2){
-  std::vector<Fraction>& tmp = v1;
+  if(v1 == v2){
+    return;
+  }
+
+  std::vector<Fraction> tmp = v1;
   v1 = v2;
   v2 = tmp;
 }
 
-size_t Matrix::FindBestPivot(size_t col){
-  for(size_t i = 0; i < GetHeight(); i ++){
-    size_t j = 0;
-    while(true){
-      if(j == col){
-        //std::cout << "i: " << i <<std::endl;
-        return i;
-      }
-
-      if(GetEntry(i,j) != 0){
-        break;
-      }
-      j++;
-    }
-  }
-  return maxvalue_sizet;
+size_t Matrix::FindMatrixBestPivot(size_t col){
+  return FindBestPivotrow(GetEntriesReference(), col);
 }
 
 Matrix Matrix::FindRREF(){
   std::vector <std::vector<Fraction>>& m_entries  = GetEntriesReference();
   for(size_t j = 0; j < GetWidth(); j++){
-    size_t row = FindBestPivot(j);
+    size_t row = FindMatrixBestPivot(j);
     if(row == maxvalue_sizet){
       break;
     }
@@ -285,41 +284,6 @@ Matrix Matrix::FindRREF(){
   return *this;
 }
 
-Matrix Matrix::FindInverse(){
-  Matrix I = Matrix(GetHeight());
-  std::vector <std::vector<Fraction>> m_entries  = GetEntries();
-  std::vector<std::vector<Fraction>>& I_entries = I.GetEntriesReference();
-  for(size_t i = 1; i < GetHeight(); i ++){
-    for(size_t j = 0; j < i; j ++){
-      if(m_entries[i][j] != 0){
-        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
-        m_entries[i] = m_entries[i] + (m_entries[j] * factor);
-        I_entries[i] = I_entries[i] + (I_entries[j] * factor);
-      }
-    }
-  }
-
-  for(size_t i = GetHeight() - 2; i < GetHeight() ; i--){
-    for(size_t j = i + 1; j < GetHeight(); j++){
-      if(m_entries[i][j] != 0){
-        std::cout << *this <<std::endl;
-        std::cout << I << std::endl;
-        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
-        m_entries[i] = m_entries[i] + (m_entries[j] * factor);
-        I_entries[i] = I_entries[i] + (I_entries[j] * factor);
-      }
-    }
-  }
-  
-  for(size_t i = 0; i < GetHeight(); i ++){
-    Fraction factor = 1.0 / m_entries[i][i];
-    m_entries[i] = m_entries[i] * factor;
-    I_entries[i] = I_entries[i] * factor;
-  }
-
-  return I;
-}
-
 Matrix Matrix::FindTranspose(){
   std::vector<std::vector<Fraction>> result;
   for(size_t i = 0; i < GetWidth(); i++){
@@ -333,66 +297,122 @@ Matrix Matrix::FindTranspose(){
   return M;
 }
 
-std::vector<Matrix> Matrix::FindElementaryMatrics(){
-  std::vector<Matrix> result;
-  std::vector <std::vector<Fraction>> m_entries  = GetEntries();
-  for(size_t i = 1; i < GetHeight(); i ++){
-    for(size_t j = 0; j < i; j ++){
-      if(m_entries[i][j] != 0){
-        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
-        m_entries[i] = m_entries[i] + (m_entries[j] * factor);
-        Matrix e(GetHeight(),i,j,factor);
-        result.push_back(e);
-      }
-    }
-  }
-  return result;
-}
-
 Matrix Matrix::FindL(){
-  std::vector<Matrix> Matrices = FindElementaryMatrics();
-  Matrix result(GetHeight());
-  for(size_t i = 0; i < Matrices.size(); i ++){
-    Matrix tmp = Matrices[i].FindInverseElementary();
-    result = result * tmp;
-  }
-  return result;
+  std::pair<Matrix,Matrix> LU = FindLU();
+  return LU.first;
 }
 
 Matrix Matrix::FindU(){
-  std::vector <std::vector<Fraction>> m_entries  = GetEntries();
-  for(size_t i = 1; i < GetHeight(); i ++){
-    for(size_t j = 0; j < i; j ++){
-      if(m_entries[i][j] != 0){
-        Fraction factor = (-1) * m_entries[i][j] / m_entries[j][j];
-        m_entries[i] = m_entries[i] + (m_entries[j] * factor);
-      }
-    }
-  }
-  Matrix M(m_entries);
-  return M;
+  std::pair<Matrix,Matrix> LU = FindLU();
+  return LU.second;
 }
 
+/*
+  Swap Count used for calculating determinant
+  Theoren: If B is the matrix obtained by interchange any two ros of A, then detB = -detA
+  So, if swap_count%2 == 1, we need to multiply the det of U to get the correct det of A
+  */ 
 std::pair<Matrix,Matrix> Matrix::FindLU(){
-  Matrix L = FindL();
-  Matrix U = FindU();
-  std::pair<Matrix,Matrix> result;
-  result.first = L;
-  result.second = U;
-  return result;
-}
+  std::vector <std::vector<Fraction>> m_entries  = GetEntriesReference();
+  Matrix L(m_entries.size());
+  std::vector <std::vector<Fraction>>& l_entries  = L.GetEntriesReference();
 
-Matrix Matrix::FindInverseElementary(){
-  std::vector<std::vector<Fraction>> result = GetEntries();
-  for(size_t i = 0; i < GetHeight(); i++){
-    for(size_t j = 0; j < i; j ++){
-      if(GetEntry(i,j) != 0){
-        result[i][j] = (-1) * GetEntry(i,j);
+  int swap_count = 0;
+  for(size_t j = 0; j < GetWidth(); j++){
+    size_t row = FindBestPivotrow(m_entries, j);
+    if(row == maxvalue_sizet){
+      continue; // The column is free
+    } 
+    if(j != row){
+      row_swap(m_entries[j],m_entries[row]);
+      row_swap(l_entries[j],l_entries[row]);
+      swap_count ++;
+    }
+    for(size_t i = j + 1; i < GetHeight(); i++){
+      if(m_entries[i][j] != 0){
+          Fraction factor = m_entries[i][j] / m_entries[j][j];
+          factor = factor * (-1);
+          m_entries[i] = m_entries[i] + m_entries[j] * factor;
+          l_entries[i][j] = factor * (-1);
       }
     }
   } 
-  Matrix tmp(result);
-  return tmp;
+  std::cout << "Swap row " << swap_count << " times " <<std::endl;
+
+  std::pair<Matrix,Matrix> LU;
+  LU.first = L;
+  LU.second = Matrix(m_entries);
+  return LU;
+}
+
+//Current Cannot handle case when this matrix do not have an inverse 
+Matrix Matrix::FindSolution(Matrix B){
+  std::vector<Fraction> x;
+  Matrix Inverse = FindInverse();
+  Matrix solution = Inverse * B;
+  return solution;
+}
+
+Matrix Matrix::FindInverse(){
+  std::vector <std::vector<Fraction>> m_entries  = GetEntriesReference();
+  Matrix Inverse(m_entries.size());
+  std::vector <std::vector<Fraction>>& i_entries  = Inverse.GetEntriesReference();
+
+  int swap_count = 0;
+  for(size_t j = 0; j < GetWidth(); j++){
+    size_t row = FindMatrixBestPivot(j);
+    if(row == maxvalue_sizet){
+      continue; // The column is free
+    } 
+    if(j != row){
+      row_swap(m_entries[j],m_entries[row]);
+      row_swap(i_entries[j],i_entries[row]);
+      swap_count ++;
+    }
+    for(size_t i = j + 1; i < GetHeight(); i++){
+      if(m_entries[i][j] != 0){
+          Fraction factor = m_entries[i][j] / m_entries[j][j];
+          factor = factor * (-1);
+          m_entries[i] = m_entries[i] + m_entries[j] * factor;
+          i_entries[i] = i_entries[i] + i_entries[j] * factor;
+      }
+    }
+  } 
+  Matrix U(m_entries);
+  for(size_t col = GetWidth() - 1; col < GetWidth() && col >=0; col--){
+    size_t pivot_col = col;
+    Fraction pivot_val = m_entries[col][col]; 
+    for(size_t row = 0; row < col; row++){
+       Fraction factor = m_entries[row][col] / pivot_val;
+       factor = factor * (-1);
+       m_entries[row] = m_entries[row] + factor * m_entries[pivot_col];
+       i_entries[row] = i_entries[row] + factor * i_entries[pivot_col];
+    }
+  }
+
+  for(size_t row = 0; row < GetHeight(); row++){
+    Fraction factor = Fraction(1) / m_entries[row][row];
+    m_entries[row][row] = 1;
+    //m_entries[row][row] = m_entries[row][row] * factor;
+    i_entries[row] = i_entries[row] * factor;
+  }
+
+  return Inverse;
+}
+
+size_t FindBestPivotrow(std::vector<std::vector<Fraction>>& entries, size_t col){
+  for(size_t i = col; i < entries.size(); i ++){
+     if(entries[i][col].numerator != 0){
+       return i;
+     }
+  }
+  return maxvalue_sizet;
+}
+
+void rowSwap_operation(size_t row1, size_t row2, Matrix L){
+  std::vector<Fraction> tmp = L.GetEntriesReference()[row1];
+  L.GetEntriesReference()[row1] = L.GetEntriesReference()[row2];
+  L.GetEntriesReference()[row2] = tmp;
 }
 
 bool operator == (const Matrix& m1, const Matrix& m2){
@@ -410,6 +430,14 @@ bool operator == (const Matrix& m1, const Matrix& m2){
 }
 
 std::vector<Fraction> operator * (std::vector<Fraction> row, Fraction scaler){
+  std::vector<Fraction> result;
+  for(size_t i = 0; i < row.size(); i++){
+    result.push_back(row[i] * scaler);
+  }
+  return result;
+}
+
+std::vector<Fraction> operator * (Fraction scaler,std::vector<Fraction> row){
   std::vector<Fraction> result;
   for(size_t i = 0; i < row.size(); i++){
     result.push_back(row[i] * scaler);

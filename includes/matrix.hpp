@@ -113,13 +113,33 @@ class Matrix {
     Fraction GetEntry(size_t row, size_t column) const;
 
     /**
+     * @brief Get the Entries of the matrix
+     * 
+     * @return std::vector<std::vector<Fraction>> 
+     */
+    std::vector<std::vector<Fraction>> GetEntries() const;
+
+    /**
      * @brief Get the Entries of matrix, pass by reference
      * @return entries of the matrix, pass by reference 
      */
     std::vector<std::vector<Fraction>>& GetEntriesReference();
 
+    /**
+     * @brief Get a specific row of the index by reference
+     * 
+     * @param row_idx 
+     * @return std::vector<Fraction> 
+     */
+    std::vector<Fraction>& GetRowReference(size_t row_idx);
 
-    std::vector<std::vector<Fraction>> GetEntries() const;
+     /**
+     * @brief Get a specific row of the index
+     * 
+     * @param row_idx 
+     * @return std::vector<Fraction> 
+     */
+    std::vector<Fraction> GetRow(size_t row_idx);
 
     /**
       * A identity matrix is a n * n matrix that has 1s on its pivot (main diagonal) and zeros else where 
@@ -133,6 +153,13 @@ class Matrix {
      * @return std::vector<Matrix> 
      */
     std::vector<Matrix> FindElementaryMatrics();
+
+    /**
+     * @brief Find L U in A = LU
+     * 
+     * @return std::pair<Matrix,Matrix> L, U
+     */
+    std::pair<Matrix,Matrix> FindLU();
 
     /**
      * @brief Find L in A = LU
@@ -149,11 +176,12 @@ class Matrix {
     Matrix FindU();
 
     /**
-     * @brief Find L U in A = LU
+     * @brief Solve the system
      * 
-     * @return std::pair<Matrix,Matrix> L, U
+     * @param b b in Ax = b
+     * @return solution Matrix
      */
-    std::pair<Matrix,Matrix> FindLU();
+    Matrix FindSolution(Matrix B);
 
     /**
      * @brief Find the Elimination Matrices required to convert A to REF Form
@@ -169,13 +197,6 @@ class Matrix {
     std::string EliminationMatrixtoString(const Matrix& m);
 
     /**
-     * @brief Base on A = LU, get unique LU base on A
-     * L is an lower tirangle matrix, U is an upper triangle matrix (after forward elimination)
-     * @return std::pair<Matrix,Matrix> 
-     */
-    std::pair<Matrix,Matrix> FactorizationLU();
-
-    /**
      * @brief Furthur divide U into U = DU'
      * where D diagonal matrix containing the matrix and U is an upper tirangular matrix with 1 at pivot position
      * @return std::vector<Matrix> 
@@ -188,7 +209,6 @@ class Matrix {
      * @return double 
      */
     Fraction FindDeterminant();
-
 
     /**
      * @brief Find Determinant of matrix m
@@ -256,7 +276,7 @@ class Matrix {
      * @param col which column
      * @return the best row 
      */
-    size_t FindBestPivot(size_t col);
+    size_t FindMatrixBestPivot(size_t col);
     
     /**
      * @brief swap two vectors v1 and v2
@@ -276,6 +296,24 @@ class Matrix {
     std::string GetEntry_toString(size_t row, size_t column) const;
 
 };
+
+/**
+ * @brief Swap row1 and row2 of the matrix L
+ * 
+ * @param row1 
+ * @param row2 
+ * @param L 
+ */
+void rowSwap_operation(size_t row1, size_t row2, Matrix L);
+
+/**
+ * @brief Find the upper most pivot row of the Matrix m with entries 
+ * 
+ * @param entries 
+ * @param col 
+ * @return size_t 
+ */
+size_t FindBestPivotrow(std::vector<std::vector<Fraction>>& entries, size_t col);
 
 /**
   * @brief Equality operator
@@ -312,3 +350,12 @@ std::ostream& operator << (std::ostream& os, std::vector<Fraction> row);
  * @return std::vector<double> 
  */
 std::vector<Fraction> operator * (std::vector<Fraction> row, Fraction scaler); 
+
+/**
+ * @brief multiplication operator 
+ * 
+ * @param row the vector that was multiplied 
+ * @param scaler the scalar 
+ * @return std::vector<double> 
+ */
+std::vector<Fraction> operator * (Fraction scaler,std::vector<Fraction> row); 

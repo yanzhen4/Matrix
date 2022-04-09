@@ -6,7 +6,7 @@
 class Fraction{
     public:
         /**
-         * @brief Default Constructor for Fraction
+         * @brief Default Constructor for Fraction for value 0
          * Set numerator to 0 and denominator to 1000
          */
         Fraction();
