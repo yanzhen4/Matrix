@@ -6,10 +6,14 @@
 
 int main(){
   //std::vector<std::vector<double>> a = {{2,5,1,1},{5,-2,0,4},{1,5,3,7},{9,7,4,1}};
-  std::vector<std::vector<double>> a = {{1,-2,-2},{-2,5,6},{3,-5,-3}};
+  std::vector<std::vector<double>> a = {{1,4,9,4},{1,6,13,6},{2,12,26,14}};
+  std::vector<std::vector<double>> b = {{18},{26},{56}};
+  std::vector<std::vector<double>> x_expected = {{5},{3},{-2}};
   Matrix A(a);
-  Matrix A_Inverse = A.FindInverse();
-  std::cout << A_Inverse <<std::endl;
+  Matrix B(b);
+  //Matrix X = A.FindMatrixSolution(B);
+ // std::cout << X <<std::endl;
+  FindSolution(A,B);
   /* 
   //Spring break Homework
   std::vector<std::vector<double>> p = {{1,3},{1,0},{-1,2},{-1,2},{-3,-2}};

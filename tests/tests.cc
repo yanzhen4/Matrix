@@ -170,7 +170,7 @@ TEST_CASE("Matrix LU Decomposition"){
 }
 
 TEST_CASE("FindSolution"){
-    SECTION("3*3 Simple"){
+    SECTION("3*3 Simple1"){
         std::vector<std::vector<double>> a = {{2,0,-3},
                                               {-2,-1,5},
                                               {-2,-1,6}};
@@ -178,8 +178,138 @@ TEST_CASE("FindSolution"){
         std::vector<std::vector<double>> x_expected = {{-5},{-13},{-4}};
         Matrix A(a);
         Matrix B(b);
-        Matrix X = A.FindSolution(B);
+        Matrix X = A.FindMatrixSolution(B);
         Matrix Xexpected(x_expected);
         REQUIRE(X == Xexpected);
+    }
+
+    SECTION("3*3 Simple2"){
+        std::vector<std::vector<double>> a = {{1,1,1},
+                                        {0,2,5},
+                                        {2,5,-1}};
+        std::vector<std::vector<double>> b = {{6},{-4},{27}};
+        std::vector<std::vector<double>> x_expected = {{5},{3},{-2}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix X = A.FindMatrixSolution(B);
+        Matrix Xexpected(x_expected);
+        REQUIRE(X == Xexpected);
+    }
+
+    SECTION("3*4 with infinite solution"){
+        std::vector<std::vector<Fraction>> a = {{1,4,9,4},
+                                                {1,6,13,6},
+                                                {2,12,26,14}};
+        std::vector<std::vector<Fraction>> b = {{18},{26},{56}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{2,2,0,2},{-1,-2,1,0}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix SolutionExpected_transpose(solution_transpose);
+        Matrix SolutionExpected = SolutionExpected_transpose.FindTranspose();
+        Matrix Solution = A.FindMatrixSolution(B);
+        REQUIRE(Solution == SolutionExpected);
+    }
+
+
+    SECTION("2*3 with infinite solution"){
+        std::vector<std::vector<Fraction>> a = {{2,6,10},
+                                                {2,9,13}};
+        std::vector<std::vector<Fraction>> b = {{16},{22}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{2,2,0},{-2,-1,1}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix SolutionExpected_transpose(solution_transpose);
+        Matrix SolutionExpected = SolutionExpected_transpose.FindTranspose();
+        Matrix Solution = A.FindMatrixSolution(B);
+        REQUIRE(Solution == SolutionExpected);
+    }
+
+    SECTION("2*3 with infinite solution2"){
+        std::vector<std::vector<Fraction>> a = {{3,6,6},
+                                                {9,18,18}};
+        std::vector<std::vector<Fraction>> b = {{6},{18}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{2,0,0},{-2,1,0},{-2,0,1}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix SolutionExpected_transpose(solution_transpose);
+        Matrix SolutionExpected = SolutionExpected_transpose.FindTranspose();
+        Matrix Solution = A.FindMatrixSolution(B);
+        REQUIRE(Solution == SolutionExpected);
+    }
+
+    SECTION("2*4 with infinite solution2"){
+        std::vector<std::vector<Fraction>> a = {{2,2,2,8},
+                                                {2,2,3,10}};
+        std::vector<std::vector<Fraction>> b = {{6},{8}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{1,0,2,0},{-1,1,0,0},{-2,0,-2,1}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix SolutionExpected_transpose(solution_transpose);
+        Matrix SolutionExpected = SolutionExpected_transpose.FindTranspose();
+        Matrix Solution = A.FindMatrixSolution(B);
+        REQUIRE(Solution == SolutionExpected);
+    }
+
+    SECTION("3*5 with infinite solution Line253"){
+        std::vector<std::vector<Fraction>> a = {{2,4,6,24},
+                                                {4,8,15,57},
+                                                {2,4,12,42}};
+        std::vector<std::vector<Fraction>> b = {{10},{23},{16}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{2,0,1,0},{-2,1,0,0},{-3,0,-3,1}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix SolutionExpected_transpose(solution_transpose);
+        Matrix SolutionExpected = SolutionExpected_transpose.FindTranspose();
+        Matrix Solution = A.FindMatrixSolution(B);
+        REQUIRE(Solution == SolutionExpected);
+    }
+
+    SECTION("2*3 with infinite solution Line253"){
+        std::vector<std::vector<Fraction>> a = {{2,6,2},
+                                                {4,12,6}};
+        std::vector<std::vector<Fraction>> b = {{4},{10}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{1,0,1},{-3,1,0}};
+        Matrix A(a);
+        Matrix B(b);
+        Matrix SolutionExpected_transpose(solution_transpose);
+        Matrix SolutionExpected = SolutionExpected_transpose.FindTranspose();
+        Matrix Solution = A.FindMatrixSolution(B);
+        REQUIRE(Solution == SolutionExpected);
+    }
+}
+
+TEST_CASE("Find NULL Space"){
+    SECTION("Find Null space 3 * 3"){
+        std::vector<std::vector<Fraction>> a = {{6,12,-6},
+                                                {-3,-9,6},
+                                                {-3,-12,9}};
+        std::vector<std::vector<Fraction>> nullspace_transpose = {{-1,1,1}};
+        Matrix A(a);
+        Matrix NullspaceExpected_transpose(nullspace_transpose);
+        Matrix NullspaceExpected = NullspaceExpected_transpose.FindTranspose();
+        Matrix Nullspace = A.FindNullSpaceMatrix();
+        REQUIRE(Nullspace == NullspaceExpected);
+    }
+
+    SECTION("Find Null space2 3 * 3"){
+        std::vector<std::vector<Fraction>> a = {{3,12,-6},
+                                                {-3,-12,6},
+                                                {-3,-12,6}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{-4,1,0},{2,0,1}};
+        Matrix A(a);
+        Matrix NullspaceExpected_transpose(solution_transpose);
+        Matrix NullspaceExpected = NullspaceExpected_transpose.FindTranspose();
+        Matrix Nullspace = A.FindNullSpaceMatrix();
+        REQUIRE(Nullspace == NullspaceExpected);
+    }
+
+    SECTION("Find Null space all zero 3 * 1"){
+        std::vector<std::vector<Fraction>> a = {{0,0,0}};
+        std::vector<std::vector<Fraction>> solution_transpose = {{1,0,0},{0,1,0},{0,0,1}};
+        Matrix A(a);
+        Matrix NullspaceExpected_transpose(solution_transpose);
+        Matrix NullspaceExpected = NullspaceExpected_transpose.FindTranspose();
+        Matrix Nullspace = A.FindNullSpaceMatrix();
+        REQUIRE(Nullspace == NullspaceExpected);
     }
 }

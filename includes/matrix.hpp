@@ -181,7 +181,7 @@ class Matrix {
      * @param b b in Ax = b
      * @return solution Matrix
      */
-    Matrix FindSolution(Matrix B);
+    Matrix FindMatrixSolution(Matrix B);
 
     /**
      * @brief Find the Elimination Matrices required to convert A to REF Form
@@ -244,6 +244,13 @@ class Matrix {
      */
     Matrix FindTranspose();
 
+    /**
+     * @brief Find the nullspace of the matrix
+     * 
+     * @return Matrix 
+     */
+    Matrix FindNullSpaceMatrix();
+
   private:
     /** the height of the matrix (the number of rows)*/
     size_t height_;
@@ -277,15 +284,7 @@ class Matrix {
      * @return the best row 
      */
     size_t FindMatrixBestPivot(size_t col);
-    
-    /**
-     * @brief swap two vectors v1 and v2
-     * 
-     * @param v1 first vector
-     * @param v2 second vector
-     */
-    void row_swap(std::vector<Fraction>& v1, std::vector<Fraction>& v2);
-
+  
     /**
      * @brief return the Fraction in string, helper function of <<operator of the matrix class 
      * 
@@ -297,14 +296,49 @@ class Matrix {
 
 };
 
+Matrix FindSolution(Matrix A, Matrix B);
+
 /**
- * @brief Swap row1 and row2 of the matrix L
+ * @brief Helpher function of FindSolution, find specific solution given U and c (Ux = c)
  * 
- * @param row1 
- * @param row2 
- * @param L 
+ * @param a_entries 
+ * @param c_entries 
+ * @return std::vector<Fraction> 
  */
-void rowSwap_operation(size_t row1, size_t row2, Matrix L);
+std::vector<Fraction> FindSpecificSolution(std::vector<std::vector<Fraction>>& a_entries, std::vector<std::vector<Fraction>>& c_entries);
+
+/**
+ * @brief Helper function of FindSolution, check if the system is consistent
+ * 
+ * @param a_entries 
+ * @param c_entries 
+ * @return a bool value indicating whether the system is conistent
+ */
+bool CheckConsistent(std::vector<std::vector<Fraction>>& a_entries, std::vector<std::vector<Fraction>>& c_entries);
+
+/**
+  * @brief Store the specific solution and the general solution in a two dimensional vector
+  * 
+  * @param B 
+  * @return std::vector<std::vector<Fraction>> 
+  */
+Matrix FindSolution(Matrix A, Matrix B);
+
+/**
+ * @brief Find the null space of a give null space A
+ * 
+ * @param A 
+ * @return Matrix 
+ */
+Matrix FindNullSpace(Matrix A);
+
+/**
+ * @brief Swap two rows
+ * 
+ * @param entries1 
+ * @param entries2 
+ */
+void rowSwap(std::vector<Fraction>& entries1, std::vector<Fraction>& entries2);
 
 /**
  * @brief Find the upper most pivot row of the Matrix m with entries 
